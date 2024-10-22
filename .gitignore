@@ -1,0 +1,61 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.venv/
+.env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Distribution files
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Installers
+*.wheel
+
+# Logs and local development
+*.log
+*.sqlite3
+
+# Unit test / coverage reports
+.coverage
+.tox/
+.nox/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# pyenv
+.python-version
+
+# mypy
+.mypy_cache/
+
+# VSCode settings
+.vscode/
+
+# MacOS specific files
+.DS_Store
+
+# JetBrains IDEs
+.idea/
+*.iml
+
+# Pylint
+pylint-report.txt
+
+# Flask files
+instance/
