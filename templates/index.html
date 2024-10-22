@@ -109,8 +109,8 @@
 
     <!-- Message Field -->
     <div class="field-container">
-        <label for="sign-message">Message:</label>
-        <input type="text" id="sign-message" class="text-field" placeholder="Enter Message">
+        <label for="sign-message">Message (In Hex):</label>
+        <input type="text" id="sign-message" class="text-field" placeholder="Enter Hex String">
     </div>
 
     <!-- Sign Button -->
@@ -146,8 +146,8 @@
 
     <!-- Message for Verification -->
     <div class="field-container">
-        <label for="verify-message">Message:</label>
-        <input type="text" id="verify-message" class="text-field" placeholder="Enter Message">
+        <label for="verify-message">Message (In Hex):</label>
+        <input type="text" id="verify-message" class="text-field" placeholder="Enter Hex String">
     </div>
 
     <!-- Signature r for Verification -->
@@ -212,13 +212,13 @@
         .catch(error => console.error('Error:', error));
     }
 
+    // Function to verify a signature
     function verifySignature() {
-        // Convert the public key and signature components to BigInt
-        const publicKeyX = BigInt(document.getElementById('verify-public-key-x').value).toString();
-        const publicKeyY = BigInt(document.getElementById('verify-public-key-y').value).toString();
+        const publicKeyX = document.getElementById('verify-public-key-x').value.trim();
+        const publicKeyY = document.getElementById('verify-public-key-y').value.trim();
+        const signatureR = document.getElementById('verify-signature-r').value.trim();
+        const signatureS = document.getElementById('verify-signature-s').value.trim();
         const message = document.getElementById('verify-message').value;
-        const signatureR = BigInt(document.getElementById('verify-signature-r').value).toString();
-        const signatureS = BigInt(document.getElementById('verify-signature-s').value).toString();
 
         const data = {
             public_key_x: publicKeyX,
