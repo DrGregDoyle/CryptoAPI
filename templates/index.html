@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptographic API Homepage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5; /* Light gray background */
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin: auto;
+        }
+        .field-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin: 10px 0;
+            width: 100%;
+        }
+        label {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .text-field {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #e5e5e5; /* Gray color similar to ChatGPT */
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .text-field:focus {
+            border-color: #888; /* Slightly darker border on focus */
+        }
+        .button {
+            margin: 20px;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #4a90e2;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #357ab8; /* Darker blue on hover */
+        }
+        .section-title {
+            margin-top: 40px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+<h1>Cryptographic API Homepage</h1>
+
+<!-- Key Generation Section -->
+<h2 class="section-title">Generate Bitcoin Keys</h2>
+
+<div class="container">
+    <!-- Generate Keys Button -->
+    <button class="button" onclick="generateKeys()">Generate Keys</button>
+
+    <!-- Private Key Field -->
+    <div class="field-container">
+        <label for="private-key">Private Key:</label>
+        <input type="text" id="private-key" class="text-field" readonly>
+    </div>
+
+    <!-- Public Key X Field -->
+    <div class="field-container">
+        <label for="public-key-x">Public Key X:</label>
+        <input type="text" id="public-key-x" class="text-field" readonly>
+    </div>
+
+    <!-- Public Key Y Field -->
+    <div class="field-container">
+        <label for="public-key-y">Public Key Y:</label>
+        <input type="text" id="public-key-y" class="text-field" readonly>
+    </div>
+
+    <!-- Compressed Public Key Field -->
+    <div class="field-container">
+        <label for="compressed-public-key">Compressed Public Key:</label>
+        <input type="text" id="compressed-public-key" class="text-field" readonly>
+    </div>
+</div>
+
+<!-- Message Signing Section -->
+<h2 class="section-title">Sign a Message</h2>
+<div class="container">
+    <!-- Private Key for Signing -->
+    <div class="field-container">
+        <label for="sign-private-key">Private Key:</label>
+        <input type="text" id="sign-private-key" class="text-field" placeholder="Enter Private Key">
+    </div>
+
+    <!-- Message Field -->
+    <div class="field-container">
+        <label for="sign-message">Message:</label>
+        <input type="text" id="sign-message" class="text-field" placeholder="Enter Message">
+    </div>
+
+    <!-- Sign Button -->
+    <button class="button" onclick="signMessage()">Sign Message</button>
+
+    <!-- Signature Result -->
+    <div class="field-container">
+        <label for="signature-r">Signature r:</label>
+        <input type="text" id="signature-r" class="text-field" readonly>
+    </div>
+
+    <div class="field-container">
+        <label for="signature-s">Signature s:</label>
+        <input type="text" id="signature-s" class="text-field" readonly>
+    </div>
+</div>
+
+<!-- Signature Verification Section -->
+<h2 class="section-title">Verify Signature</h2>
+<div class="container">
+
+    <!-- Public Key X for Verification -->
+    <div class="field-container">
+        <label for="verify-public-key-x">Public Key x:</label>
+        <input type="text" id="verify-public-key-x" class="text-field" placeholder="Enter Public Key x">
+    </div>
+
+    <!-- Public Key Y for Verification -->
+    <div class="field-container">
+        <label for="verify-public-key-y">Public Key y:</label>
+        <input type="text" id="verify-public-key-y" class="text-field" placeholder="Enter Public Key y">
+    </div>
+
+    <!-- Message for Verification -->
+    <div class="field-container">
+        <label for="verify-message">Message:</label>
+        <input type="text" id="verify-message" class="text-field" placeholder="Enter Message">
+    </div>
+
+    <!-- Signature r for Verification -->
+    <div class="field-container">
+        <label for="verify-signature-r">Signature r:</label>
+        <input type="text" id="verify-signature-r" class="text-field" placeholder="Enter Signature r">
+    </div>
+
+    <!-- Signature s for Verification -->
+    <div class="field-container">
+        <label for="verify-signature-s">Signature s:</label>
+        <input type="text" id="verify-signature-s" class="text-field" placeholder="Enter Signature s">
+    </div>
+
+    <!-- Verify Button -->
+    <button class="button" onclick="verifySignature()">Verify Signature</button>
+
+    <!-- Verification Result -->
+    <div class="field-container">
+        <label for="verification-result">Verification:</label>
+        <input type="text" id="verification-result" class="text-field" readonly>
+    </div>
+</div>
+
+
+<script>
+    // Function to generate keys
+    function generateKeys() {
+        fetch('/generate_keys')
+            .then(response => response.json())
+            .then(data => {
+                // Display the keys as strings
+                document.getElementById('private-key').value = data.private_key;
+                document.getElementById('public-key-x').value = data.public_key_point[0];
+                document.getElementById('public-key-y').value = data.public_key_point[1];
+                document.getElementById('compressed-public-key').value = data.compressed_public_key;
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Function to sign a message
+    function signMessage() {
+        const privateKey = document.getElementById('sign-private-key').value.trim();
+        const message = document.getElementById('sign-message').value;
+
+        const data = {
+            private_key: privateKey,
+            message: message
+        };
+
+        fetch('/sign_message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Display the r and s components of the signature
+            document.getElementById('signature-r').value = data.r;
+            document.getElementById('signature-s').value = data.s;
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function verifySignature() {
+        // Convert the public key and signature components to BigInt
+        const publicKeyX = BigInt(document.getElementById('verify-public-key-x').value).toString();
+        const publicKeyY = BigInt(document.getElementById('verify-public-key-y').value).toString();
+        const message = document.getElementById('verify-message').value;
+        const signatureR = BigInt(document.getElementById('verify-signature-r').value).toString();
+        const signatureS = BigInt(document.getElementById('verify-signature-s').value).toString();
+
+        const data = {
+            public_key_x: publicKeyX,
+            public_key_y: publicKeyY,
+            message: message,
+            r: signatureR,
+            s: signatureS
+        };
+
+        fetch('/verify_signature', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('verification-result').value = data.is_valid ? 'Valid' : 'Invalid';
+        })
+        .catch(error => console.error('Error:', error));
+    }
+</script>
+</body>
+</html>
