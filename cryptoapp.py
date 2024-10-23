@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from ecc import secp256k1
+from helpers import ascii_to_hex
 
 app = Flask(__name__)
 curve = secp256k1()
@@ -35,7 +36,10 @@ def generate_keys():
 def sign():
     data = request.get_json()
     private_key = data.get('private_key')
-    message = data.get('message')
+    message = ascii_to_hex(data.get('message'))
+
+    print(f"DATA MESSAGE: {data.get('message')}")
+    print(f"HEX MESSAGE: {message}")
 
     if not private_key or not message:
         return jsonify({'error': 'Private key and message are required'}), 400
@@ -58,7 +62,7 @@ def sign():
 @app.route('/verify_signature', methods=['POST'])
 def verify():
     data = request.get_json()
-    message = data.get('message')
+    message = ascii_to_hex(data.get('message'))
     pubkeyx = int(data.get('public_key_x'))
     pubkeyy = int(data.get('public_key_y'))
 

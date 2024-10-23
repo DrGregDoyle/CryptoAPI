@@ -26,6 +26,32 @@
             margin: 10px 0;
             width: 100%;
         }
+        .tooltip-container {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 180px;
+            background-color: #4a90e2;
+            color: #fff;
+            text-align: center;
+            padding: 5px;
+            border-radius: 5px;
+            position: absolute;
+            z-index: 1;
+            left: -200px;
+            margin-right: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
         label {
             font-size: 16px;
             margin-bottom: 5px;
@@ -108,9 +134,10 @@
     </div>
 
     <!-- Message Field -->
-    <div class="field-container">
-        <label for="sign-message">Message (In Hex):</label>
-        <input type="text" id="sign-message" class="text-field" placeholder="Enter Hex String">
+    <div class="field-container tooltip-container">
+        <label for="sign-message">Message:</label>
+        <input type="text" id="sign-message" class="text-field" placeholder="Enter Message">
+        <span class="tooltip-text">Message can be ascii text or a string of hexadecimal values.</span>
     </div>
 
     <!-- Sign Button -->
@@ -146,8 +173,8 @@
 
     <!-- Message for Verification -->
     <div class="field-container">
-        <label for="verify-message">Message (In Hex):</label>
-        <input type="text" id="verify-message" class="text-field" placeholder="Enter Hex String">
+        <label for="verify-message">Message:</label>
+        <input type="text" id="verify-message" class="text-field" placeholder="Enter Message">
     </div>
 
     <!-- Signature r for Verification -->
