@@ -10,6 +10,7 @@ import secrets
 
 from primefac import isprime
 
+
 # --- MATH --- #
 # --- Mathematical methods used in elliptic curve cryptography --- #
 
@@ -88,7 +89,6 @@ def tonelli_shanks(n: int, p: int):
         R = (R * b) % p
 
     return R
-
 
 
 # --- CLASSES --- #
@@ -374,7 +374,7 @@ class EllipticCurve:
 
     # --- ECDSA --- #
 
-    def generate_keys(self):
+    def generate_private_key(self):
         """
         Generates cryptographically secure random private key along with corresponding public key point
         """
@@ -382,9 +382,15 @@ class EllipticCurve:
         private_key = 0
         while private_key == 0:
             private_key = secrets.randbits(bit_length) % self.order
-        public_key_point = self.scalar_multiplication(private_key, self.generator)
-        return private_key, public_key_point
+        return private_key
 
+    def get_public_keys(self, private_key: int):
+        """
+        Returns public key point and compressed public key
+        """
+        pkpt = self.scalar_multiplication(private_key, self.generator)
+        cpk = self.compress_point(pkpt)
+        return pkpt, cpk
 
     def generate_signature(self, private_key: int, hex_string: str):
         '''
