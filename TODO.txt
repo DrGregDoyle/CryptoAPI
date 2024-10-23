@@ -1,3 +1,4 @@
 1) Implement Schoof's algorithm for checking group order of the Elliptic curve
 2) Implement baby-step/giant-step algorithm for checking group order of the Elliptic curve
 3) Create unit tests to verify endpoints
+4) Merge/cannabilize all code from BitClone for use in app.

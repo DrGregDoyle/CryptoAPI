@@ -180,9 +180,23 @@
     <!-- Bitcoin Address Generation Card -->
     <div id="address-gen" class="card hidden">
         <h2>Bitcoin Address Generation</h2>
+
+        <!-- Input Fields for Public Key Points -->
         <div class="field-container">
-            <label for="pubkey-input">Public Key (Hex):</label>
-            <input type="text" id="pubkey-input" class="text-field" placeholder="Enter public key in hex">
+            <label for="pubkey-x">Public Key X:</label>
+            <input type="text" id="pubkey-x" class="text-field" placeholder="Enter X coordinate">
+        </div>
+
+        <div class="field-container">
+            <label for="pubkey-y">Public Key Y:</label>
+            <input type="text" id="pubkey-y" class="text-field" placeholder="Enter Y coordinate">
+        </div>
+
+        <!-- Input Field for Compressed Public Key -->
+        <div class="field-container">
+            <label for="pubkey-compressed">Compressed Public Key (Hex):</label>
+            <input type="text" id="pubkey-compressed" class="text-field"
+                   placeholder="Enter compressed public key in hex">
         </div>
         <div class="field-container">
             <label for="address-type">Address Type:</label>
@@ -191,11 +205,12 @@
                 <option value="bech32">Bech32 (P2WPKH)</option>
             </select>
         </div>
+        <button class="button" onclick="generateBitcoinAddress()">Generate Bitcoin Address</button>
         <div class="field-container">
             <label for="btc-address-result">Bitcoin Address:</label>
             <input type="text" id="btc-address-result" class="text-field" readonly>
         </div>
-        <button class="button" onclick="generateBitcoinAddress()">Generate Bitcoin Address</button>
+
     </div>
 
 
@@ -274,8 +289,85 @@
         })
         .catch(error => console.error('Error:', error));
     }
-    function hashSHA256() { console.log("Hash with SHA-256"); }
-    function generateBitcoinAddress() { console.log("Generate Bitcoin Address"); }
+
+    // Function to hash input with SHA-256
+    function hashSHA256() {
+        const input = document.getElementById('sha256-input').value;
+
+        fetch('/hash_sha256', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ input: input })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('sha256-result').value = data.hash;
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+
+
+// Function to generate Bitcoin address
+function generateBitcoinAddress() {
+    const pubkeyX = document.getElementById('pubkey-x').value.trim();
+    const pubkeyY = document.getElementById('pubkey-y').value.trim();
+    const compressedKey = document.getElementById('pubkey-compressed').value.trim();
+    const addressType = document.getElementById('address-type').value;
+
+    // Check if the compressed public key is filled
+    if (compressedKey) {
+        // Generate address using compressed public key
+        generateAddressFromCompressed(compressedKey, addressType);
+    } else {
+        // Validate the x and y coordinates
+        if (pubkeyX && !pubkeyY) {
+            alert("Y-coordinate is missing. Please enter it.");
+            return;
+        } else if (!pubkeyX && pubkeyY) {
+            alert("X-coordinate is missing. Please enter it.");
+            return;
+        } else if (pubkeyX && pubkeyY) {
+            // Generate address using public key points
+            generateAddressFromPoints(pubkeyX, pubkeyY, addressType);
+        } else {
+            alert("Please enter either the public key points (X and Y) or the compressed public key.");
+        }
+    }
+}
+
+// Function to generate address from compressed public key
+function generateAddressFromCompressed(compressedKey, addressType) {
+    const requestData = { compressed_public_key: compressedKey, address_type: addressType };
+
+    fetch('/generate_bitcoin_address', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('btc-address-result').value = data.bitcoin_address;
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Function to generate address from public key points
+function generateAddressFromPoints(pubkeyX, pubkeyY, addressType) {
+    const requestData = { public_key_x: pubkeyX, public_key_y: pubkeyY, address_type: addressType };
+
+    fetch('/generate_bitcoin_address', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('btc-address-result').value = data.bitcoin_address;
+    })
+    .catch(error => console.error('Error:', error));
+}
+
 </script>
 </body>
 </html>

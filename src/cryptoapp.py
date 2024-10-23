@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify, render_template
 
 from ecc import secp256k1
-from helpers import ascii_to_hex, hash_message
+from helpers import ascii_to_hex, hash_message, ripemd_message
+from src.address import create_legacy_address, create_bech32_address
 from src.helpers import der_encode
 
 app = Flask(__name__)
@@ -92,7 +93,7 @@ def verify():
 @app.route('/hash_sha256', methods=['POST'])
 def hash_sha256():
     data = request.get_json()
-    input_text = data.get('input', '')
+    input_text = data.get('input')
     sha256_hash = hash_message(input_text)
     return jsonify({'hash': sha256_hash})
 
@@ -106,6 +107,39 @@ def encode_der():
     # Your existing DER encoding function here
     der_encoded = der_encode(r, s)
     return jsonify({'encoded_signature': der_encoded})
+
+
+@app.route('/generate_bitcoin_address', methods=['POST'])
+def generate_bitcoin_address():
+    data = request.get_json()
+
+    # Determine if input is a compressed public key or x, y coordinates
+    compressed_pubkey = data.get('compressed_public_key')
+    pubkey_x = data.get('public_key_x')
+    pubkey_y = data.get('public_key_y')
+    address_type = data.get('address_type', 'legacy')
+
+    if compressed_pubkey:
+        pass
+        # pubkey_bytes = bytes.fromhex(compressed_pubkey)
+    elif pubkey_x and pubkey_y:
+        # Compress the public key from x and y coordinates
+        compressed_pubkey = curve.compress_point((int(pubkey_x), int(pubkey_y)))
+    else:
+        return jsonify({'error': 'Invalid input'}), 400
+
+    # Hash the public key for address generation
+    sha256_hash = hash_message(compressed_pubkey)
+    pubkey_hash = ripemd_message(sha256_hash)
+
+    if address_type == 'legacy':
+        bitcoin_address = create_legacy_address(pubkey_hash)
+    elif address_type == 'bech32':
+        bitcoin_address = create_bech32_address(pubkey_hash)
+    else:
+        return jsonify({'error': 'Invalid address type'}), 400
+
+    return jsonify({'bitcoin_address': bitcoin_address})
 
 
 if __name__ == '__main__':

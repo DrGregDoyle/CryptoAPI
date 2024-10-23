@@ -1,8 +1,8 @@
 """
 Helper Functions
 """
+import hashlib
 import re
-from hashlib import sha256
 
 
 def is_hex(text: str) -> bool:
@@ -73,7 +73,7 @@ def hash_message(text: str):
     message = ascii_to_hex(text) if not is_hex(text) else text
 
     # SHA256
-    return sha256(message.encode()).hexdigest()
+    return hashlib.sha256(message.encode()).hexdigest()
 
 
 def double_hash(text: str):
@@ -81,3 +81,13 @@ def double_hash(text: str):
     message = ascii_to_hex(text) if not is_hex(text) else text
 
     return hash_message(hash_message(text))
+
+
+def ripemd_message(text: str):
+    # Get message as hex string
+    message = ascii_to_hex(text) if not is_hex(text) else text
+
+    # RIPEMD
+    h = hashlib.new('ripemd160')
+    h.update(message.encode())
+    return h.hexdigest()
