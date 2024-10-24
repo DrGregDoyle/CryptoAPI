@@ -5,3 +5,4 @@
 5) Add logging
 6) Add ability to create new generator point for ECC for groups with prime order
 7) Add ability to decode DER encoded signature for use in signature verification
+8) Add ability to handle prefixes in Data class

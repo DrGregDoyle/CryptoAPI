@@ -1,8 +1,9 @@
 from flask import Flask, render_template, jsonify, request
 
 from src.library.codec import der_encode
+from src.library.codec import encode_base58
 from src.library.curves import CurveType, get_curve
-from src.library.data_formats import ascii_to_hex
+from src.library.data_formats import Data
 from src.library.ecc_keys import KeyPair
 from src.library.ecdsa import generate_signature, verify_signature
 from src.library.hash_functions import HashType, hash_function
@@ -46,12 +47,12 @@ def get_public_keys():
 def sign():
     data = request.get_json()
     private_key = int(data.get('private_key'))
-    message = ascii_to_hex(data.get('message'))
+    message = Data(data.get('message'))
 
     if not private_key or not message:
         return jsonify({'error': 'Private key and message are required'}), 400
 
-    signature = generate_signature(private_key, message, curve_type)
+    signature = generate_signature(private_key, message.hex, curve_type)
 
     r, s = signature
     der_sig = der_encode(r, s)
@@ -68,7 +69,7 @@ def sign():
 @app.route('/verify_signature', methods=['POST'])
 def verify():
     data = request.get_json()
-    message = ascii_to_hex(data.get('message'))
+    message = Data(data.get('message'))
     cpk = data.get('cpk')
 
     # pubkeyx = int(data.get('public_key_x'))
@@ -83,7 +84,7 @@ def verify():
     if not public_key or not message or not signature:
         return jsonify({'error': 'Public key, message, and signature are required'}), 400
 
-    is_valid = verify_signature(signature, message, public_key, curve_type)
+    is_valid = verify_signature(signature, message.hex, public_key, curve_type)
     print(f"IS VALID: {is_valid}")
     return jsonify({'is_valid': is_valid})
 
@@ -92,7 +93,7 @@ def verify():
 def hash_sha256():
     # Get input as hex string
     data = request.get_json()
-    input_text = ascii_to_hex(data.get('input'))
+    input_text = Data(data.get('input'))
 
     # Run all hash functions
     sha256_hash = hash_function(input_text, HashType.SHA256)
@@ -108,50 +109,52 @@ def hash_sha256():
     })
 
 
-#
-#
-# @app.route('/encode_der', methods=['POST'])
-# def encode_der():
-#     data = request.get_json()
-#     r = int(data.get('r', '0'))
-#     s = int(data.get('s', '0'))
-#
-#     # Your existing DER encoding function here
-#     der_encoded = der_encode(r, s)
-#     return jsonify({'encoded_signature': der_encoded})
-#
-#
-# @app.route('/generate_bitcoin_address', methods=['POST'])
-# def generate_bitcoin_address():
-#     data = request.get_json()
-#
-#     # Determine if input is a compressed public key or x, y coordinates
-#     compressed_pubkey = data.get('compressed_public_key')
-#     pubkey_x = data.get('public_key_x')
-#     pubkey_y = data.get('public_key_y')
-#     address_type = data.get('address_type', 'legacy')
-#
-#     if compressed_pubkey:
-#         pass
-#         # pubkey_bytes = bytes.fromhex(compressed_pubkey)
-#     elif pubkey_x and pubkey_y:
-#         # Compress the public key from x and y coordinates
-#         compressed_pubkey = curve.compress_point((int(pubkey_x), int(pubkey_y)))
-#     else:
-#         return jsonify({'error': 'Invalid input'}), 400
-#
-#     # Hash the public key for address generation
-#     sha256_hash = hash_message(compressed_pubkey)
-#     pubkey_hash = ripemd_message(sha256_hash)
-#
-#     if address_type == 'legacy':
-#         bitcoin_address = create_legacy_address(pubkey_hash)
-#     elif address_type == 'bech32':
-#         bitcoin_address = create_bech32_address(pubkey_hash)
-#     else:
-#         return jsonify({'error': 'Invalid address type'}), 400
-#
-#     return jsonify({'bitcoin_address': bitcoin_address})
+@app.route('/encode_der', methods=['POST'])
+def encode_der():
+    data = request.get_json()
+    r = int(data.get('r', '0'))
+    s = int(data.get('s', '0'))
+
+    # Your existing DER encoding function here
+    der_encoded = der_encode(r, s)
+    return jsonify({'encoded_signature': der_encoded})
+
+
+@app.route('/generate_bitcoin_address', methods=['POST'])
+def generate_bitcoin_address():
+    data = request.get_json()
+
+    # Determine if input is a compressed public key or x, y coordinates
+    compressed_pubkey = data.get('compressed_public_key')
+    pubkey_x = data.get('public_key_x')
+    pubkey_y = data.get('public_key_y')
+    address_type = data.get('address_type', 'legacy')
+
+    if compressed_pubkey:
+        pass
+        # pubkey_bytes = bytes.fromhex(compressed_pubkey)
+    elif pubkey_x and pubkey_y:
+        # Compress the public key from x and y coordinates
+        compressed_pubkey = curve.compress_point((int(pubkey_x), int(pubkey_y)))
+    else:
+        return jsonify({'error': 'Invalid input'}), 400
+
+    pubkey_data = Data(compressed_pubkey)
+
+    base58_string = encode_base58(pubkey_data)
+
+    # Hash the public key for address generation
+    # sha256_hash = hash_message(compressed_pubkey)
+    # pubkey_hash = ripemd_message(sha256_hash)
+
+    # if address_type == 'legacy':
+    #     bitcoin_address = create_legacy_address(pubkey_hash)
+    # elif address_type == 'bech32':
+    #     bitcoin_address = create_bech32_address(pubkey_hash)
+    # else:
+    #     return jsonify({'error': 'Invalid address type'}), 400
+
+    return jsonify({'bitcoin_address': base58_string})
 
 
 if __name__ == '__main__':

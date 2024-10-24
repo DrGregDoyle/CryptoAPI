@@ -1,7 +1,40 @@
 """
 Encoding/Decoding methods
 """
+from src.library.data_formats import Data
 
+# --- BASE 58 CODEC --- #
+base58_alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+
+
+def encode_base58(data: Data):
+    # Get alphabet and int value of data
+
+    num = data.int
+
+    # Encode
+    encoded_string = ""
+    while num > 0:
+        num, res = divmod(num, 58)  # Returns (num//58, num % 58)
+        encoded_string = base58_alphabet[res] + encoded_string
+    return encoded_string
+
+
+def decode_base58(encoded_string: str):
+    # Create an integer to hold the result
+    total = 0
+
+    # Reverse string for ease of use
+    reverse_encoded_string = "".join([encoded_string[i] for i in range(len(encoded_string) - 1, -1, -1)])
+
+    for i in range(len(reverse_encoded_string)):
+        _num = base58_alphabet.index(reverse_encoded_string[i])
+        total += pow(58, i) * _num
+
+    return Data(total)
+
+
+# --- DER CODEC --- #
 
 def der_encode(r: int, s: int):
     """
@@ -41,3 +74,10 @@ def der_encode(r: int, s: int):
     der_bytes = b'\x30' + len(der_content).to_bytes(1, byteorder='big') + der_content
 
     return der_bytes.hex()
+
+
+if __name__ == "__main__":
+    _data = Data("c4a341008b709660a71260e1496c728a72d91b7f5fa1d51cfd")
+    encoded_data = encode_base58(_data)
+    print(f"Data: {_data.hex}, Base58 Encoded: {encoded_data}")
+    print(f"DECODE: {decode_base58(encoded_data).hex}")

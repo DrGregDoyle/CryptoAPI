@@ -4,7 +4,7 @@ Various hashing methods used in Bitcoin
 import hashlib
 from enum import Enum
 
-from src.library.data_formats import get_bytes
+from src.library.data_formats import Data
 
 
 class HashType(Enum):
@@ -14,20 +14,20 @@ class HashType(Enum):
     HASH160 = "hash160"
 
 
-def hash_function(data: str | bytes, hashtype: HashType) -> str:
+def hash_function(data: Data, hashtype: HashType) -> str:
     # Get encoded data
-    data = get_bytes(data)
+    # data = bytes.fromhex(data) if isinstance(data, str) else data
 
     # Match hashtype | return hex digest
     match hashtype:
         case HashType.SHA256:
-            return sha256(data).hex()
+            return sha256(data.bytes).hex()
         case HashType.HASH256:
-            return hash256(data).hex()
+            return hash256(data.bytes).hex()
         case HashType.RIPEMD160:
-            return ripemd160(data).hex()
+            return ripemd160(data.bytes).hex()
         case HashType.HASH160:
-            return hash160(data).hex()
+            return hash160(data.bytes).hex()
         case _:
             raise ValueError("Invalid hash type specified.")
 
@@ -53,10 +53,11 @@ def hash160(data: bytes) -> bytes:
 
 # Testing
 if __name__ == "__main__":
-    _data = "deadbeef"
+    _data = Data("deadbeef")
     hash1 = hash_function(_data, HashType.SHA256)
     hash2 = hash_function(_data, HashType.HASH256)
     hash3 = hash_function(_data, HashType.HASH160)
     print(f"SHA256(deadbeef) = {hash1}")
     print(f"HASH256(deadbeef) = {hash2}")
     print(f"HASH160(deadbeef) = {hash3}")
+    print(_data.to_int())
