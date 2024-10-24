@@ -88,12 +88,24 @@ def verify():
     return jsonify({'is_valid': is_valid})
 
 
-@app.route('/hash_sha256', methods=['POST'])
+@app.route('/hash', methods=['POST'])
 def hash_sha256():
+    # Get input as hex string
     data = request.get_json()
     input_text = ascii_to_hex(data.get('input'))
+
+    # Run all hash functions
     sha256_hash = hash_function(input_text, HashType.SHA256)
-    return jsonify({'hash': sha256_hash})
+    hash256_hash = hash_function(input_text, HashType.HASH256)
+    ripemd160_hash = hash_function(input_text, HashType.RIPEMD160)
+    hash160_hash = hash_function(input_text, HashType.HASH160)
+
+    return jsonify({
+        'sha256': sha256_hash,
+        'hash256': hash256_hash,
+        'ripemd160': ripemd160_hash,
+        'hash160': hash160_hash
+    })
 
 
 #

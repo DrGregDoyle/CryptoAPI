@@ -14,7 +14,7 @@
         <div class="tab active" onclick="showTab('key-gen')">Key Generation</div>
         <div class="tab" onclick="showTab('signing')">Message Signing</div>
         <div class="tab" onclick="showTab('verifying')">Message Verifying</div>
-        <div class="tab" onclick="showTab('hashing')">SHA-256 Hashing</div>
+        <div class="tab" onclick="showTab('hashing')">Hash Data</div>
         <div class="tab" onclick="showTab('address-gen')">Bitcoin Address</div>
 
     </div>
@@ -105,18 +105,32 @@
 
     </div>
 
-    <!-- SHA-256 Hashing Card -->
+    <!-- Hashing Card -->
     <div id="hashing" class="card hidden">
-        <h2>SHA-256 Hashing</h2>
+        <h2>Data Hashing</h2>
         <div class="field-container">
-            <label for="sha256-input">Input:</label>
-            <input type="text" id="sha256-input" class="text-field" placeholder="Enter text to hash">
+            <label for="hashing-input">Input:</label>
+            <input type="text" id="hashing-input" class="text-field" placeholder="Enter data to hash">
         </div>
+        <button class="button" onclick="hash_input()">Hash Input</button>
         <div class="field-container">
             <label for="sha256-result">SHA-256 Hash:</label>
             <input type="text" id="sha256-result" class="text-field" readonly>
         </div>
-        <button class="button" onclick="hashSHA256()">Hash with SHA-256</button>
+        <div class="field-container">
+            <label for="hash256-result">HASH256 Hash:</label>
+            <input type="text" id="hash256-result" class="text-field" readonly>
+        </div>
+        <div class="field-container">
+            <label for="ripemd160-result">RIPEMD160 Hash:</label>
+            <input type="text" id="ripemd160-result" class="text-field" readonly>
+        </div>
+        <div class="field-container">
+            <label for="hash160-result">HASH160 Hash:</label>
+            <input type="text" id="hash160-result" class="text-field" readonly>
+        </div>
+
+
     </div>
 
     <!-- Bitcoin Address Generation Card -->
