@@ -4,7 +4,7 @@ Various hashing methods used in Bitcoin
 import hashlib
 from enum import Enum
 
-from data_formats import get_bytes
+from src.library.data_formats import get_bytes
 
 
 class HashType(Enum):

@@ -5,6 +5,7 @@ from src.library.curves import CurveType, get_curve
 from src.library.data_formats import ascii_to_hex
 from src.library.ecc_keys import KeyPair
 from src.library.ecdsa import generate_signature, verify_signature
+from src.library.hash_functions import HashType, hash_function
 
 app = Flask(__name__)
 curve_type = CurveType.SECP256K1  # TODO: Enable multiple types
@@ -87,14 +88,14 @@ def verify():
     return jsonify({'is_valid': is_valid})
 
 
-#
-#
-# @app.route('/hash_sha256', methods=['POST'])
-# def hash_sha256():
-#     data = request.get_json()
-#     input_text = data.get('input')
-#     sha256_hash = hash_message(input_text)
-#     return jsonify({'hash': sha256_hash})
+@app.route('/hash_sha256', methods=['POST'])
+def hash_sha256():
+    data = request.get_json()
+    input_text = ascii_to_hex(data.get('input'))
+    sha256_hash = hash_function(input_text, HashType.SHA256)
+    return jsonify({'hash': sha256_hash})
+
+
 #
 #
 # @app.route('/encode_der', methods=['POST'])
