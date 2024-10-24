@@ -1,24 +1,6 @@
 """
 Helper Functions
 """
-import hashlib
-import re
-
-
-def is_hex(text: str) -> bool:
-    """
-    Returns TRUE if string is all in hexadecimal, otherwise returns False.
-    """
-    hex_pattern = r'^(0x)?[0-9a-fA-F]+$'
-    return bool(re.match(hex_pattern, text))
-
-
-def ascii_to_hex(text: str):
-    """
-    If text is not a hex string, turns all characters into ascii integer values and returns the correspondhing
-    hex string.
-    """
-    return text if is_hex(text) else text.encode().hex()
 
 
 def der_encode(r: int, s: int):
@@ -63,31 +45,3 @@ def der_encode(r: int, s: int):
 
     der_bytes = cs_header + der_length.to_bytes(length=1, byteorder="big") + byte_encoded_r + byte_encoded_s
     return der_bytes.hex()
-
-
-def hash_message(text: str):
-    """
-    Given a string, we return the SHA256 hex digest of the corresponding hexadecimal value of the given string.
-    """
-    # Get message as hex string
-    message = ascii_to_hex(text) if not is_hex(text) else text
-
-    # SHA256
-    return hashlib.sha256(message.encode()).hexdigest()
-
-
-def double_hash(text: str):
-    # Get message as hex string
-    message = ascii_to_hex(text) if not is_hex(text) else text
-
-    return hash_message(hash_message(text))
-
-
-def ripemd_message(text: str):
-    # Get message as hex string
-    message = ascii_to_hex(text) if not is_hex(text) else text
-
-    # RIPEMD
-    h = hashlib.new('ripemd160')
-    h.update(message.encode())
-    return h.hexdigest()
