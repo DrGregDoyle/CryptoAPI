@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cryptographic API Homepage</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
 </head>
 <body>
 <div class="container">
@@ -14,8 +13,10 @@
     <div class="tabs">
         <div class="tab active" onclick="showTab('key-gen')">Key Generation</div>
         <div class="tab" onclick="showTab('signing')">Message Signing</div>
+        <div class="tab" onclick="showTab('verifying')">Message Verifying</div>
         <div class="tab" onclick="showTab('hashing')">SHA-256 Hashing</div>
         <div class="tab" onclick="showTab('address-gen')">Bitcoin Address</div>
+
     </div>
     <hr>
 
@@ -46,7 +47,6 @@
         <button class="button" onclick="getPublicKeys()">Get Public Keys</button>
     </div>
 
-
     <!-- Message Signing Card -->
     <div id="signing" class="card hidden">
         <h2>Message Signing</h2>
@@ -72,6 +72,37 @@
             <label for="der-signature">DER Encoded Signature:</label>
             <input type="text" id="der-signature" class="text-field" readonly>
         </div>
+    </div>
+
+    <!-- Message Verification Card -->
+    <div id="verifying" class="card hidden">
+        <h2>Message Verification</h2>
+        <div class="field-container">
+            <label for="verify-message">Message:</label>
+            <input type="text" id="verify-message" class="text-field" placeholder="Enter message to verify">
+        </div>
+        <div class="field-container">
+            <label for="sign-cpk">Compressed Public Key:</label>
+            <input type="text" id="sign-cpk" class="text-field" placeholder="Enter Compressed Public Key">
+        </div>
+        <div class="field-container">
+            <label for="signature-r-verify">Signature r:</label>
+            <input type="text" id="signature-r-verify" class="text-field">
+        </div>
+        <div class="field-container">
+            <label for="signature-s-verify">Signature s:</label>
+            <input type="text" id="signature-s-verify" class="text-field">
+        </div>
+        <div class="field-container">
+            <label for="der-signature-verify">DER Encoded Signature:</label>
+            <input type="text" id="der-signature-verify" class="text-field">
+        </div>
+        <button class="button" onclick="verifySignature()">Verify Signature</button>
+        <div class="field-container">
+            <label for="verification-result">Verification:</label>
+            <input type="text" id="verification-result" class="text-field" readonly>
+        </div>
+
     </div>
 
     <!-- SHA-256 Hashing Card -->

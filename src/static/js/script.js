@@ -12,80 +12,80 @@ function showTab(tabId) {
         event.target.classList.add('active');
     }
 
-    // Generate Keys card
-    // Function to generate a random private key
-    function generatePrivateKey() {
-        fetch('/generate_private_key')
-            .then(response => response.json())
-            .then(data => {
-                // Display the generated private key
-                document.getElementById('private-key').value = data.private_key;
-            })
-            .catch(error => console.error('Error:', error));
-    }
-    // Function to get public keys from the inputted private key
-    function getPublicKeys() {
-        const privateKey = document.getElementById('private-key').value.trim();
-
-        if (!privateKey) {
-            alert("Please enter or generate a private key first.");
-            return;
-        }
-
-        fetch('/get_public_keys', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ private_key: privateKey })
-        })
+// Generate Keys card
+// Function to generate a random private key
+function generatePrivateKey() {
+    fetch('/generate_private_key')
         .then(response => response.json())
         .then(data => {
-            // Display the public keys
-            document.getElementById('public-key-x').value = data.public_key_x;
-            document.getElementById('public-key-y').value = data.public_key_y;
-            document.getElementById('compressed-public-key').value = data.compressed_public_key;
+            // Display the generated private key
+            document.getElementById('private-key').value = data.private_key;
         })
         .catch(error => console.error('Error:', error));
-    }
-    // Function to sign a message
-    function signMessage() {
-        const privateKey = document.getElementById('sign-private-key').value.trim();
-        const message = document.getElementById('sign-message').value;
+}
+// Function to get public keys from the inputted private key
+function getPublicKeys() {
+    const privateKey = document.getElementById('private-key').value.trim();
 
-        const data = {
-            private_key: privateKey,
-            message: message
-        };
-
-        fetch('/sign_message', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Display the r and s components of the signature and the DER encoding
-            document.getElementById('signature-r').value = data.r;
-            document.getElementById('signature-s').value = data.s;
-            document.getElementById('der-signature').value = data.der
-        })
-        .catch(error => console.error('Error:', error));
+    if (!privateKey) {
+        alert("Please enter or generate a private key first.");
+        return;
     }
 
-    // Function to hash input with SHA-256
-    function hashSHA256() {
-        const input = document.getElementById('sha256-input').value;
+    fetch('/get_public_keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ private_key: privateKey })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Display the public keys
+        document.getElementById('public-key-x').value = data.public_key_x;
+        document.getElementById('public-key-y').value = data.public_key_y;
+        document.getElementById('compressed-public-key').value = data.compressed_public_key;
+    })
+    .catch(error => console.error('Error:', error));
+}
+// Function to sign a message
+function signMessage() {
+    const privateKey = document.getElementById('sign-private-key').value.trim();
+    const message = document.getElementById('sign-message').value;
 
-        fetch('/hash_sha256', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ input: input })
-        })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('sha256-result').value = data.hash;
-        })
-        .catch(error => console.error('Error:', error));
-    }
+    const data = {
+        private_key: privateKey,
+        message: message
+    };
+
+    fetch('/sign_message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Display the r and s components of the signature and the DER encoding
+        document.getElementById('signature-r').value = data.r;
+        document.getElementById('signature-s').value = data.s;
+        document.getElementById('der-signature').value = data.der
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Function to hash input with SHA-256
+function hashSHA256() {
+    const input = document.getElementById('sha256-input').value;
+
+    fetch('/hash_sha256', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: input })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('sha256-result').value = data.hash;
+    })
+    .catch(error => console.error('Error:', error));
+}
 
 
 
@@ -145,6 +145,37 @@ function generateAddressFromPoints(pubkeyX, pubkeyY, addressType) {
     .then(response => response.json())
     .then(data => {
         document.getElementById('btc-address-result').value = data.bitcoin_address;
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Function to verify a signature
+function verifySignature() {
+    const compressedPubKey = document.getElementById('sign-cpk').value.trim();
+//    const publicKeyX = document.getElementById('verify-public-key-x').value.trim();
+//    const publicKeyY = document.getElementById('verify-public-key-y').value.trim();
+    const signatureR = document.getElementById('signature-r-verify').value.trim();
+    const signatureS = document.getElementById('signature-s-verify').value.trim();
+    const message = document.getElementById('verify-message').value;
+    const dersig = document.getElementById('der-signature-verify')
+
+    const data = {
+//        public_key_x: publicKeyX,
+//        public_key_y: publicKeyY,
+        cpk: compressedPubKey,
+        message: message,
+        r: signatureR,
+        s: signatureS
+    };
+
+    fetch('/verify_signature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('verification-result').value = data.is_valid ? 'Valid' : 'Invalid';
     })
     .catch(error => console.error('Error:', error));
 }

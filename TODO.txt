@@ -3,3 +3,4 @@
 3) Create unit tests to verify endpoints
 4) Merge/cannabilize all code from BitClone for use in app.
 5) Add logging
+6) Add ability to create new generator point for ECC for groups with prime order
