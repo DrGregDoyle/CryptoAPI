@@ -1,0 +1,88 @@
+body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 30px;
+        }
+        .card {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .card h2 {
+            margin-top: 0;
+        }
+        .field-container {
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #555;
+        }
+        .text-field {
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            width: calc(100%); /* Ensure it stays within the card */
+            box-sizing: border-box; /* Include padding in width calculation */
+            overflow-x: auto; /* Enables horizontal scrolling */
+            white-space: nowrap; /* Prevents line breaks within the field */
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #4a90e2;
+            color: white;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #357ab8;
+        }
+        .hidden {
+            display: none;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        .tab {
+            padding: 10px 20px;
+            border-radius: 8px;
+            background-color: #4a90e2;
+            color: white;
+            margin-right: 5px;
+            transition: background-color 0.3s;
+        }
+        .tab.active {
+            background-color: #357ab8;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background: #ccc;
+            margin: 20px 0;
+        }
