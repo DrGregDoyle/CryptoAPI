@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify, render_template
 
-from ecc import secp256k1
 from helpers import ascii_to_hex, hash_message, ripemd_message
-from src.address import create_legacy_address, create_bech32_address
 from src.helpers import der_encode
+from src.library.address import create_legacy_address, create_bech32_address
+from src.library.ecc import secp256k1
 
 app = Flask(__name__)
 curve = secp256k1()

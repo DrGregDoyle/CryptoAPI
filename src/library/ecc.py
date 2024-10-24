@@ -1,8 +1,5 @@
 """
 Elliptic Curve Class
-
-
-
 """
 # --- IMPORTS --- #
 import json
@@ -10,139 +7,16 @@ import secrets
 
 from primefac import isprime
 
+from ecc_math import tonelli_shanks
+from src.library.ecc_math import legendre_symbol
 
-# --- MATH --- #
-# --- Mathematical methods used in elliptic curve cryptography --- #
-
-def legendre_symbol(n: int, p: int) -> int:
-    '''
-    We calculate n^(p-1)/2 (mod p). The result will either be 0, 1 or p-1.
-    If it's p-1 we return -1 otherwise we return the value
-    '''
-    flt = pow(n, (p - 1) // 2, p)
-    if flt == p - 1:
-        return -1
-    return flt
-
-
-def is_quadratic_residue(n: int, p: int) -> bool:
-    '''
-    Returns True if (n|p) != -1
-    '''
-    if legendre_symbol(n, p) == -1:
-        return False
-    return True
-
-
-def tonelli_shanks(n: int, p: int):
-    '''
-    If n is a quadratic residue mod p, then we return an integer r such that r^2 = n (mod p).
-    '''
-
-    # Verify n is a quadratic residue
-    if legendre_symbol(n, p) == -1:
-        return None
-
-    # Trivial case
-    if n % p == 0:
-        return 0
-
-    # p = 3 (mod 4) case
-    if p % 4 == 3:
-        return pow(n, (p + 1) // 4, p)
-
-    ###--- General Case ---###
-    # 1) Divide p-1 into its even and odd components by p-1 = 2^s * Q, where Q is odd and s >=1
-    Q = p - 1
-    s = 0
-    while Q % 2 == 0:
-        s += 1
-        Q //= 2
-
-    # 2) Find a quadratic non residue
-    z = 2
-    while legendre_symbol(z, p) != -1:
-        z += 1
-
-    # 3) Configure initial variables
-    M = s
-    c = pow(z, Q, p)
-    t = pow(n, Q, p)
-    R = pow(n, (Q + 1) // 2, p)
-
-    # 4) Repeat until t == 1
-    while t != 1:
-
-        # First find the least integer i such that t^(2^i) = 1 (mod p)
-        i = 0
-        factor = t
-        while factor != 1:
-            i += 1
-            factor = (factor * factor) % p
-
-        # Reassign variables
-        exp = 2 ** (M - i - 1)
-        b = pow(c, exp, p)
-        M = i
-        c = (b * b) % p
-        t = (t * c) % p
-        R = (R * b) % p
-
-    return R
-
-
-# --- CLASSES --- #
-
-class CurveFactory:
-    # --- CONSTANT --- #
-    MAX_PRIME = pow(2, 19) - 1  # 7th Mersenne Prime
-
-    # --- FACTORY -- #
-    def create_curve(self, a: int, b: int, p: int, order=None, generator=None):
-        # Verify prime p
-        if not isprime(p):
-            return None
-
-        # Verify curve non-singular
-        disc = (-16 * (4 * pow(a, 3) + 27 * pow(b, 3))) % p
-        if disc == 0:
-            return None
-
-        # If order is given, make sure it's prime
-        if order is not None:
-            if not isprime(order):
-                return None
-
-        # Verify order given for large prime
-        if p > self.MAX_PRIME and order is None:
-            return None
-
-        # Get non-singular curve over F_p, with prime order for p >= MAX_PRIME
-        curve = EllipticCurve(a=a, b=b, p=p, order=order, generator=generator)
-
-        # Get order if p < MAX_PRIME
-        if p <= self.MAX_PRIME:
-            temp_order = curve.get_order()
-
-            # Verify order if it exists - if not, replace with calculated order
-            if order is not None and order != temp_order:
-                curve = EllipticCurve(a=a, b=b, p=p, order=temp_order, generator=generator)
-
-            # Return None if order isn't prime
-            if not isprime(temp_order):
-                return None
-
-            # Return None if generator not given
-            if curve.generator is None:
-                return None
-
-        return curve
+MAX_PRIME = pow(2, 19) - 1  # 7th Mersenne Prime
 
 
 class EllipticCurve:
 
-    def __init__(self, a: int, b: int, p: int, order=None, generator=None):
-        '''
+    def __init__(self, a: int, b: int, p: int, order: int, generator: tuple):
+        """
         We instantiate an elliptic curve E of the form
 
             y^2 = x^3 + ax + b (mod p).
@@ -151,26 +25,15 @@ class EllipticCurve:
         point at infinity. The order variable refers to the order of this group. As the group is cyclic,
         it will contain a generator point, which can be specified during instantiation.
 
-        '''
+        """
         # Get curve values
         self.a = a
         self.b = b
         self.p = p
 
-        # Get order for small prime
-        if self.p <= CurveFactory.MAX_PRIME and order is None:
-            self.order = self.get_order()
-        else:
-            self.order = order
-
-        # Check if generator is on the curve
-        if generator is not None and not self.is_point_on_curve(generator):
-            generator = None
-
-        # Get generator
+        # Get group values
+        self.order = order
         self.generator = generator
-        if generator is None:
-            self.generator = self.random_point()
 
     def __repr__(self):
         hex_dict = {
@@ -184,29 +47,28 @@ class EllipticCurve:
 
     # --- Right Hand Side --- #
 
-    def x_terms(self, x):
-        return pow(x, 3) + self.a * x + self.b
+    def x_terms(self, x: int) -> int:
+        """Compute x^3 + ax + b mod p."""
+        return (pow(x, 3, self.p) + self.a * x + self.b) % self.p
 
     # --- Points on curve --- #
 
     def random_point(self) -> tuple:
-        '''
-        Returns cryptographically secure random point on the curve
-        '''
-        x = secrets.randbelow(self.p - 1)
-        while not self.is_x_on_curve(x):
-            x += 1
-            if x >= self.p - 1:  # If x gets too big we choose another x
-                x = secrets.randbelow(self.p - 1)
-
-        y = self.find_y_from_x(x)
-        point = (x, y)
-        return point
+        """
+        Returns a cryptographically secure random point on the curve.
+        """
+        # Find a random x-coordinate that is on the curve
+        x = next(
+            x for x in (secrets.randbelow(self.p - 1) for _ in iter(int, 1))
+            if self.is_x_on_curve(x)
+        )
+        # Compute corresponding y-coordinate
+        return x, self.find_y_from_x(x)
 
     def is_point_on_curve(self, point: tuple) -> bool:
-        '''
+        """
         Returns true if the given point is on the curve, false otherwise
-        '''
+        """
         # Point at infinity case first
         if point is None:
             return True
@@ -216,23 +78,22 @@ class EllipticCurve:
         return (self.x_terms(x) - pow(y, 2)) % self.p == 0
 
     def is_x_on_curve(self, x: int) -> bool:
-        '''
+        """
         A residue x is on the curve E iff x^3 + ax + b is a quadratic residue modulo p.
-        We use the is_quadratic_residue method from cryptomath
-        '''
-
-        return is_quadratic_residue(self.x_terms(x), self.p)
+        This includes the trivial case x^3 + ax + b = 0 (mod p). Hence, by Euler's criterion, if
+            ((x^3+ax+b) | p) != 1 (mod p),
+        then x is a point on the curve.
+        """
+        return legendre_symbol(self.x_terms(x), self.p) != -1
 
     def find_y_from_x(self, x: int):
-        '''
-        Using tonelli shanks, we return y such that E(x,y) = 0, if x is on the curve.
-        Note that if (x,y) is a point then (x,p-y) will be a point as well.
-        '''
+        """
+        Using Tonelli-Shanks, return the smaller y such that E(x, y) = 0 if x is on the curve.
+        Note that if (x, y) is a point, then (x, p-y) is also a point.
+        """
 
         # Verify x is on curve
-        try:
-            assert self.is_x_on_curve(x)
-        except AssertionError:
+        if not self.is_x_on_curve(x):
             return None
 
         # Find the two possible y values
@@ -242,6 +103,7 @@ class EllipticCurve:
         # Check y values
         try:
             assert self.is_point_on_curve((x, y))
+            assert self.is_point_on_curve((x, neg_y))
             assert self.add_points((x, y), (x, neg_y)) is None
         except AssertionError:
             return None
@@ -252,9 +114,9 @@ class EllipticCurve:
     # --- Group operations --- #
 
     def add_points(self, point1: tuple, point2: tuple):
-        '''
+        """
         Adding points using the elliptic curve addition rules.
-        '''
+        """
 
         # Verify points exist
         try:
@@ -277,7 +139,7 @@ class EllipticCurve:
         if x1 == x2:
             if y1 != y2:  # Points are inverses
                 return None
-            elif y1 == 0:  # Point is its own inverse when lying on the x axis
+            elif y1 == 0:  # Point is its own inverse when lying on the x-axis
                 return None
             else:  # Points are the same
                 m = ((3 * x1 * x1 + self.a) * pow(2 * y1, -1, self.p)) % self.p
@@ -299,7 +161,7 @@ class EllipticCurve:
         return point
 
     def scalar_multiplication(self, n: int, point: tuple):
-        '''
+        """
         We use the double-and-add algorithm to add a point P with itself n times.
 
         Algorithm:
@@ -318,7 +180,7 @@ class EllipticCurve:
             0       | double        | 6P
             1       | double/add    | 12P + P = 13P
             0       | double        | 26P
-        '''
+        """
         # Retrieve order if it's None - only for small primes
         if self.order is None:
             self.order = self.get_order()
@@ -352,26 +214,6 @@ class EllipticCurve:
         # Return point
         return temp_point
 
-    def get_order(self):
-        '''
-        We naively calculate the order by iterating over all x in F_p. If x is on the curve we
-        obtain y. If y is not zero, then we known (x,y) and (x,p-y) are two points on the curve. Otherwise, (x,
-        0) is a point on the curve (on the x-axis). Hence, we sum up these values and add the point at infinity to
-        return the order.
-
-        NOTE: This should only be used for small primes.
-        '''
-
-        sum = 1  # Start with point of infinity
-        for x in range(0, self.p):
-            if self.is_x_on_curve(x):
-                y = self.find_y_from_x(x)
-                if y == 0:
-                    sum += 1
-                else:
-                    sum += 2
-        return sum
-
     # --- ECDSA --- #
 
     def generate_private_key(self):
@@ -393,7 +235,7 @@ class EllipticCurve:
         return pkpt, cpk
 
     def generate_signature(self, private_key: int, hex_string: str):
-        '''
+        """
         For a given private_key and hex_string, we generate a signature for this curve.
 
 
@@ -409,7 +251,7 @@ class EllipticCurve:
         4) Calculate the curve point (x,y) =  k * generator
         5) Compute r = x (mod n) and s = k^(-1)(Z + r * t) (mod n). If either r or s = 0, repeat from step 3.
         6) The signature is the pair (r, s)
-        '''
+        """
 
         # 1) Let n denote the group order
         n = self.order
@@ -443,7 +285,7 @@ class EllipticCurve:
         return sig
 
     def verify_signature(self, signature: tuple, hex_string: str, public_key: tuple) -> bool:
-        '''
+        """
         We verify that the given signature corresponds to the correct public_key for the given hex_string.
 
         Algorithm
@@ -456,7 +298,7 @@ class EllipticCurve:
         4) Calculate the curve point (x,y) = (u1 * generator) + (u2 * public_key)
             (where * is scalar multiplication, and + is elliptic curve point addition mod p)
         5) If r = x (mod n), the signature is valid.
-        '''
+        """
 
         # Get signature values
         (r, s) = signature
@@ -490,9 +332,9 @@ class EllipticCurve:
 
     # --- Point compression/decompression --- #
     def compress_point(self, point: tuple):
-        '''
+        """
         Will return x point as hex string with 0x02 or 0x03 prefix depending on parity of y
-        '''
+        """
         # Verify point is on the curve
         try:
             assert self.is_point_on_curve(point)
@@ -504,7 +346,6 @@ class EllipticCurve:
             return point
 
         x, y = point
-        compressed_point = None
         if y % 2 == 0:
             compressed_point = '0x02' + hex(x)[2:]
         else:
@@ -512,9 +353,9 @@ class EllipticCurve:
         return compressed_point
 
     def decompress_point(self, hex_string: str):
-        '''
+        """
         We return a point on the curve according to the leading parity bit. We account for the hex string starting with '0x' or not.
-        '''
+        """
         # Get x val and y parity
         if hex_string[:2] == '0x':
             parity = int(hex_string[2:4], 16)
@@ -538,7 +379,7 @@ class EllipticCurve:
         except AssertionError:
             return None
 
-        return (x, y)
+        return x, y
 
 
 # --- CRYPTO CURVES --- #
