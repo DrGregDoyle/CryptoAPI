@@ -84,15 +84,16 @@ function verifySignature() {
     const signatureR = document.getElementById('signature-r-verify').value.trim();
     const signatureS = document.getElementById('signature-s-verify').value.trim();
     const message = document.getElementById('verify-message').value;
-    const dersig = document.getElementById('der-signature-verify')
+    const dersig = document.getElementById('der-signature-verify').value;
+
+    console.log("DER Signature:", dersig);  // Debug line
 
     const data = {
-//        public_key_x: publicKeyX,
-//        public_key_y: publicKeyY,
         cpk: compressedPubKey,
         message: message,
         r: signatureR,
-        s: signatureS
+        s: signatureS,
+        der_sig: dersig
     };
 
     fetch('/verify_signature', {
@@ -128,10 +129,26 @@ function hash_input() {
 }
 
 // -- Bitcoin Address card
+
+// Function to generate pubkeyhash
+function pubKeyHash() {
+    const compressedPubKey = document.getElementById('pubkey-compressed').value.trim();
+
+    fetch('/pubkeyhash', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ compressed_public_key: compressedPubKey })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('pubkey-hash').value = data.pubkeyhash;
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+
 // Function to generate Bitcoin address
 function generateBitcoinAddress() {
-    const pubkeyX = document.getElementById('pubkey-x').value.trim();
-    const pubkeyY = document.getElementById('pubkey-y').value.trim();
     const compressedKey = document.getElementById('pubkey-compressed').value.trim();
     const addressType = document.getElementById('address-type').value;
 

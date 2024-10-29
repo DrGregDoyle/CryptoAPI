@@ -19,12 +19,30 @@ class Data:
             bit_length = (data.bit_length() + 7) // 8
             self._data = data.to_bytes(bit_length, self.byte_order)
         elif isinstance(data, str):
+            if data.startswith("0x"):
+                data = data[2:]
             if self.is_hex(data):
                 self._data = bytes.fromhex(data)
             else:
                 self._data = data.encode()
         else:
             raise TypeError("Input must be a bytes object, integer, hexadecimal string, or ASCII string.")
+
+    def __add__(self, other):
+        """
+        We overload add/radd so that if blob is a hex string, or bytes/int object, we can add blob + self or self+blob.
+        """
+        if isinstance(other, bytes):
+            return Data(self.bytes + other)
+        elif isinstance(other, int):
+            return Data(self.int + other)
+        elif isinstance(other, str) and Data.is_hex(other):
+            return Data(self.hex + other)
+        else:
+            return NotImplemented
+
+    def __radd__(self, other):
+        return self.__add__(other)
 
     @property
     def bytes(self) -> bytes:

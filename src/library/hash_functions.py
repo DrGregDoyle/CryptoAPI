@@ -32,6 +32,11 @@ def hash_function(data: Data, hashtype: HashType) -> str:
             raise ValueError("Invalid hash type specified.")
 
 
+def checksum(data: Data, hashtype: HashType = HashType.HASH256, byte_num: int = 4) -> bytes:
+    hashed_data = Data(hash_function(data, hashtype))
+    return hashed_data.bytes[:byte_num]
+
+
 # -- All hash functions are bytes in / bytes out
 def sha256(data: bytes) -> bytes:
     return hashlib.sha256(data).digest()

@@ -137,22 +137,16 @@
     <div id="address-gen" class="card hidden">
         <h2>Bitcoin Address Generation</h2>
 
-        <!-- Input Fields for Public Key Points -->
-        <div class="field-container">
-            <label for="pubkey-x">Public Key X:</label>
-            <input type="text" id="pubkey-x" class="text-field" placeholder="Enter X coordinate">
-        </div>
-
-        <div class="field-container">
-            <label for="pubkey-y">Public Key Y:</label>
-            <input type="text" id="pubkey-y" class="text-field" placeholder="Enter Y coordinate">
-        </div>
-
         <!-- Input Field for Compressed Public Key -->
         <div class="field-container">
-            <label for="pubkey-compressed">Compressed Public Key (Hex):</label>
+            <label for="pubkey-compressed">Compressed Public Key:</label>
             <input type="text" id="pubkey-compressed" class="text-field"
                    placeholder="Enter compressed public key in hex">
+        </div>
+        <button class="button" onclick="pubKeyHash()">Generate PubKeyHash</button>
+        <div class="field-container">
+            <label for="pubkey-hash"> Public Key HASH160: </label>
+            <input type="text" id="pubkey-hash" class="text-field" readonly>
         </div>
         <div class="field-container">
             <label for="address-type">Address Type:</label>

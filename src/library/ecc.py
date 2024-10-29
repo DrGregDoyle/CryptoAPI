@@ -33,12 +33,13 @@ class EllipticCurve:
         self.generator = generator
 
     def __repr__(self):
+        gx, gy = self.generator
         hex_dict = {
             'a': hex(self.a),
             'b': hex(self.b),
             'p': hex(self.p),
             'order': hex(self.order),
-            'generator': self.compress_point(self.generator)
+            'generator': (hex(gx), hex(gy))
         }
         return json.dumps(hex_dict)
 
@@ -178,89 +179,106 @@ class EllipticCurve:
             1       | double/add    | 12P + P = 13P
             0       | double        | 26P
         """
-        # Retrieve order if it's None - only for small primes
-        if self.order is None:
-            self.order = self.get_order()
-
         # Point at infinity case
         if point is None:
-            return None
-
-        # Scalar multiple divides group order
-        if n % self.order == 0:
             return None
 
         # Take residue of n modulo the group order
         n = n % self.order
 
-        # Proceed with algorithm
-        bitstring = bin(n)[2:]
-        temp_point = point
-        for x in range(1, len(bitstring)):
-            temp_point = self.add_points(temp_point, temp_point)  # Double regardless of bit
-            bit = int(bitstring[x:x + 1], 2)
-            if bit == 1:
-                temp_point = self.add_points(temp_point, point)  # Add to the doubling if bit == 1
-
-        # Verify results
-        try:
-            assert self.is_point_on_curve(temp_point)
-        except AssertionError:
+        # Handle zero residue case
+        if n == 0:
             return None
 
-        # Return point
-        return temp_point
+        # Initialize result to point at infinity and temp_point to the given point
+        result = None
+        temp_point = point
+        # Iterate over the bits of n, from least significant to most significant
+        while n > 0:
+            # If the least significant bit is 1, add temp_point to result
+            if n & 1:
+                result = self.add_points(result, temp_point)
+
+            # Double temp_point
+            temp_point = self.add_points(temp_point, temp_point)
+
+            # Right-shift n to process the next bit
+            n >>= 1
+
+        # Verify results
+        if not self.is_point_on_curve(result):
+            return None
+
+        return result
+
+        # # Proceed with algorithm
+        # bitstring = bin(n)[2:]
+        # temp_point = point
+        # for x in range(1, len(bitstring)):
+        #     temp_point = self.add_points(temp_point, temp_point)  # Double regardless of bit
+        #     bit = int(bitstring[x:x + 1], 2)
+        #     if bit == 1:
+        #         temp_point = self.add_points(temp_point, point)  # Add to the doubling if bit == 1
+        #
+        # # Verify results
+        # try:
+        #     assert self.is_point_on_curve(temp_point)
+        # except AssertionError:
+        #     return None
+        #
+        # # Return point
+        # return temp_point
 
     def multiply_generator(self, n: int):
         return self.scalar_multiplication(n, self.generator)
 
-    # --- Point compression/decompression --- #
-    def compress_point(self, point: tuple):
-        """
-        Will return x point as hex string with 0x02 or 0x03 prefix depending on parity of y
-        """
-        # Verify point is on the curve
-        try:
-            assert self.is_point_on_curve(point)
-        except AssertionError:
-            return None
-
-        # Point at infinity can't be compressed
-        if not point:
-            return point
-
-        x, y = point
-        if y % 2 == 0:
-            compressed_point = '0x02' + hex(x)[2:]
-        else:
-            compressed_point = '0x03' + hex(x)[2:]
-        return compressed_point
-
-    def decompress_point(self, hex_string: str):
-        """
-        We return a point on the curve according to the leading parity bit. We account for the hex string starting with '0x' or not.
-        """
-        # Get x val and y parity
-        if hex_string[:2] == '0x':
-            parity = int(hex_string[2:4], 16)
-            x = int(hex_string[4:], 16)
-        else:
-            parity = int(hex_string[:2], 16)
-            x = int(hex_string[2:], 16)
-
-        # Find candidate y from x
-        temp_y = self.find_y_from_x(x)
-
-        # Choose correct y based on parity
-        if temp_y % 2 == parity % 2:
-            y = temp_y
-        else:
-            y = self.p - temp_y
-
-        # Verify point
-        try:
-            assert self.is_point_on_curve((x, y))
-        except AssertionError:
-            return None
-
-        return x, y
+    # # --- Point compression/decompression --- #
+    # def compress_point(self, point: tuple):
+    #     """
+    #     Will return x point as hex string with 0x02 or 0x03 prefix depending on parity of y
+    #     """
+    #     # Verify point is on the curve
+    #     try:
+    #         assert self.is_point_on_curve(point)
+    #     except AssertionError:
+    #         return None
+    #
+    #     # Point at infinity can't be compressed
+    #     if not point:
+    #         return point
+    #
+    #     x, y = point
+    #     if y % 2 == 0:
+    #         compressed_point = '0x02' + hex(x)[2:]
+    #     else:
+    #         compressed_point = '0x03' + hex(x)[2:]
+    #     return compressed_point
+    #
+    # def decompress_point(self, hex_string: str):
+    #     """
+    #     We return a point on the curve according to the leading parity bit. We account for the hex string starting with '0x' or not.
+    #     """
+    #     # Get x val and y parity
+    #     if hex_string[:2] == '0x':
+    #         parity = int(hex_string[2:4], 16)
+    #         x = int(hex_string[4:], 16)
+    #     else:
+    #         parity = int(hex_string[:2], 16)
+    #         x = int(hex_string[2:], 16)
+    #
+    #     # Find candidate y from x
+    #     temp_y = self.find_y_from_x(x)
+    #
+    #     # Choose correct y based on parity
+    #     if temp_y % 2 == parity % 2:
+    #         y = temp_y
+    #     else:
+    #         y = self.p - temp_y
+    #
+    #     # Verify point
+    #     try:
+    #         assert self.is_point_on_curve((x, y))
+    #     except AssertionError:
+    #         return None
+    #
+    #     return x, y

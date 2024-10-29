@@ -1,7 +1,7 @@
 from flask import Flask, render_template, jsonify, request
 
-from src.library.codec import der_encode
-from src.library.codec import encode_base58
+from src.library.codec import der_encode, decompress_public_key, compress_public_key
+from src.library.codec import encode_base58, der_decode
 from src.library.curves import CurveType, get_curve
 from src.library.data_formats import Data
 from src.library.ecc_keys import KeyPair
@@ -71,15 +71,19 @@ def verify():
     data = request.get_json()
     message = Data(data.get('message'))
     cpk = data.get('cpk')
+    sig_r = data.get('r')
+    sig_s = data.get('s')
+    der_encoded_sig = data.get('der_sig')
 
-    # pubkeyx = int(data.get('public_key_x'))
-    # pubkeyy = int(data.get('public_key_y'))
+    if (sig_r == "" or sig_s == "") and der_encoded_sig != "":
+        r, s = der_decode(der_encoded_sig)
+    elif sig_r != "" and sig_s != "":
+        r, s = int(sig_r), int(sig_s)
+    else:
+        raise ValueError(f"Missing one or more fields.")
 
-    sig_r = int(data.get('r'))
-    sig_s = int(data.get('s'))
-
-    public_key = curve.decompress_point(cpk)
-    signature = (sig_r, sig_s)
+    public_key = decompress_public_key(cpk, curve_type)
+    signature = (r, s)
 
     if not public_key or not message or not signature:
         return jsonify({'error': 'Public key, message, and signature are required'}), 400
@@ -120,6 +124,31 @@ def encode_der():
     return jsonify({'encoded_signature': der_encoded})
 
 
+@app.route('/decode_der', methods=['POST'])
+def decode_der():
+    data = request.get_json()
+    der_string = data.get('der_encoded_signature')
+
+    # Decode DER string
+    decoded_sig = der_decode(der_string)
+    r, s = decoded_sig
+    return jsonify({
+        "r": str(r),
+        "s": str(s)
+    })
+
+
+@app.route('/pubkeyhash', methods=['POST'])
+def hash_compressed_public_key():
+    data = request.get_json()
+    cpk = data.get('compressed_public_key')
+
+    cpk_data = Data(cpk)
+
+    pubkeyhash = hash_function(cpk_data, HashType.HASH160)
+    return jsonify({'pubkeyhash': pubkeyhash})
+
+
 @app.route('/generate_bitcoin_address', methods=['POST'])
 def generate_bitcoin_address():
     data = request.get_json()
@@ -135,24 +164,12 @@ def generate_bitcoin_address():
         # pubkey_bytes = bytes.fromhex(compressed_pubkey)
     elif pubkey_x and pubkey_y:
         # Compress the public key from x and y coordinates
-        compressed_pubkey = curve.compress_point((int(pubkey_x), int(pubkey_y)))
+        compressed_pubkey = compress_public_key((int(pubkey_x), int(pubkey_y)))
     else:
         return jsonify({'error': 'Invalid input'}), 400
 
     pubkey_data = Data(compressed_pubkey)
-
     base58_string = encode_base58(pubkey_data)
-
-    # Hash the public key for address generation
-    # sha256_hash = hash_message(compressed_pubkey)
-    # pubkey_hash = ripemd_message(sha256_hash)
-
-    # if address_type == 'legacy':
-    #     bitcoin_address = create_legacy_address(pubkey_hash)
-    # elif address_type == 'bech32':
-    #     bitcoin_address = create_bech32_address(pubkey_hash)
-    # else:
-    #     return jsonify({'error': 'Invalid address type'}), 400
 
     return jsonify({'bitcoin_address': base58_string})
 
