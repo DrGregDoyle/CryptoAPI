@@ -41,6 +41,10 @@ class Data:
         else:
             return NotImplemented
 
+    def __len__(self):
+        """Returns byte length"""
+        return len(self.bytes)
+
     def __radd__(self, other):
         return self.__add__(other)
 

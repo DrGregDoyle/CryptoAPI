@@ -2,6 +2,7 @@
 Encoding/Decoding methods
 """
 
+from src.library.bech32 import convertbits, bech32_encode, Encoding, bech32_decode
 from src.library.curves import CurveType, get_curve
 from src.library.data_formats import Data
 from src.library.hash_functions import checksum, HashType
@@ -49,6 +50,13 @@ base58_alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
 
 def encode_base58(data: Data) -> str:
+    # Get number of leading zeros
+    zero_bytes = 0
+    for i in range(len(data.bytes)):
+        chunk = data.bytes[i:i + 1]
+        if chunk == b'\x00':
+            zero_bytes += 1
+
     # Get int value of data
     num = data.int
 
@@ -57,6 +65,9 @@ def encode_base58(data: Data) -> str:
     while num > 0:
         num, res = divmod(num, 58)  # Returns (num//58, num % 58)
         encoded_string = base58_alphabet[res] + encoded_string
+
+    # Add leading zeros
+    encoded_string = "1" * zero_bytes + encoded_string
     return encoded_string
 
 
@@ -92,6 +103,36 @@ def decode_base58check(encoded_string: str) -> Data:
         raise ValueError("Base58Check encoded data checksum verification failed")
 
     return decoded_data
+
+
+# --- BECH32 ENCODING --- #
+def encode_bech32(data: Data):
+    """
+    Encoding is fixed to BECH32 as we only generate addresses for pubkeyhash. When moving to segwit V1 we need Bech32M.
+    """
+    # Extract the bytes from the Data instance
+    pubkey_hash = data.bytes
+
+    # Ensure pubkey_hash is exactly 20 bytes
+    if len(pubkey_hash) != 20:
+        raise ValueError("P2WPKH pubkey hash must be exactly 20 bytes.")
+
+    # Prepend version byte (0x00 for SegWit v0)
+    data_with_version = bytes([0x00]) + pubkey_hash
+
+    # Convert 8-bit data to 5-bit using the reference convertbits function
+    converted_data = convertbits(data_with_version, 8, 5, pad=False)
+    if converted_data is None:
+        raise ValueError("Failed to convert data from 8-bit to 5-bit.")
+
+    # Submit converted_data using "bc" as hrp
+    bech32_address = bech32_encode(hrp="bc", data=converted_data, spec=Encoding.BECH32)
+
+    # Decode to verify checksum
+    hrp, decoded_data, spec = bech32_decode(bech32_address)
+    if hrp != 'bc' or decoded_data is None:
+        raise ValueError("Checksum verification failed.")
+    return bech32_address
 
 
 # --- DER CODEC --- #
@@ -162,19 +203,9 @@ def der_decode(encoded_signature: str):
 
     return int(r, 16), int(s, 16)
 
-# if __name__ == "__main__":
-#     from src.library.ecdsa import generate_signature
-#     from src.library.curves import get_curve, CurveType
-#     from secrets import randbits
-#
-#     curve = get_curve(CurveType.SECP256K1)
-#     data = Data("deadbeef")
-#     private_key = randbits(256)
-#     sig = generate_signature(private_key, data.hex)
-#     _r, _s = sig
-#     print(f"r: {_r}")
-#     print(f's; {_s}')
-#     der_encoded_sig = der_encode(_r, _s)
-#     print(f"DER ENCODED SIGNATURE: {der_encoded_sig}")
-#     decoded_sig = der_decode(der_encoded_sig)
-#     print(f"DER DECODED SIG: {decoded_sig}")
+
+if __name__ == "__main__":
+    _data = Data("659fce0935e44098a293f496cb47a3cc8b62d86b")
+    _addresss = encode_bech32(_data)
+
+    print(_addresss)

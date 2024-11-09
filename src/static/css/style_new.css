@@ -1,0 +1,174 @@
+/* styles.css */
+
+/* Reset some basic styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative; /* To contain absolutely positioned elements if needed */
+}
+
+/* Title */
+.container h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #343a40;
+}
+
+/* Tabs Styling */
+.tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.tab {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #6c757d;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.tab:hover {
+    background-color: #5a6268;
+}
+
+.tab.active {
+    background-color: #007bff;
+}
+
+/* Card Container */
+.container .card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px; /* Space between cards */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative; /* For stacking purposes */
+    z-index: 1;
+}
+
+/* Stacked Effect: Slightly offset each subsequent card */
+.container .card:nth-child(odd) {
+    transform: translateY(-5px);
+}
+
+.container .card:nth-child(even) {
+    transform: translateY(5px);
+}
+
+.container .card:hover {
+    transform: translateY(0) scale(1.02);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Remove display: none from hidden class to allow multiple cards */
+.container .card.hidden {
+    /* Optionally, keep some hidden functionality or remove entirely */
+    /* If you want to keep the ability to hide/show cards, use opacity and visibility */
+    opacity: 0;
+    visibility: hidden;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease, height 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+}
+
+/* Field Containers */
+.field-container {
+    margin-bottom: 15px;
+}
+
+.field-container label {
+    display: block;
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+.field-container input,
+.field-container select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.field-container input:focus,
+.field-container select:focus {
+    border-color: #80bdff;
+    outline: none;
+}
+
+/* Buttons */
+.button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.button:hover {
+    background-color: #0056b3;
+}
+
+/* Add Card Button Styling (If you decide to add one) */
+#addCardButton {
+    display: block;
+    margin: 30px auto 0;
+    padding: 12px 24px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 16px;
+}
+
+#addCardButton:hover {
+    background-color: #218838;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container .card {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px;
+    }
+
+    .tab {
+        padding: 8px 16px;
+        margin: 3px;
+        font-size: 14px;
+    }
+
+    .button,
+    #addCardButton {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}

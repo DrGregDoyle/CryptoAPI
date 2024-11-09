@@ -134,6 +134,8 @@ function hash_input() {
 function pubKeyHash() {
     const compressedPubKey = document.getElementById('pubkey-compressed').value.trim();
 
+    console.log(compressedPubKey)
+
     fetch('/pubkeyhash', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -149,33 +151,19 @@ function pubKeyHash() {
 
 // Function to generate Bitcoin address
 function generateBitcoinAddress() {
-    const compressedKey = document.getElementById('pubkey-compressed').value.trim();
     const addressType = document.getElementById('address-type').value;
+    const hashedPubKey = document.getElementById('pubkey-hash').value.trim()
 
-    // Check if the compressed public key is filled
-    if (compressedKey) {
-        // Generate address using compressed public key
-        generateAddressFromCompressed(compressedKey, addressType);
-    } else {
-        // Validate the x and y coordinates
-        if (pubkeyX && !pubkeyY) {
-            alert("Y-coordinate is missing. Please enter it.");
-            return;
-        } else if (!pubkeyX && pubkeyY) {
-            alert("X-coordinate is missing. Please enter it.");
-            return;
-        } else if (pubkeyX && pubkeyY) {
-            // Generate address using public key points
-            generateAddressFromPoints(pubkeyX, pubkeyY, addressType);
-        } else {
-            alert("Please enter either the public key points (X and Y) or the compressed public key.");
-        }
-    }
+    console.log('Generate Bitcoin Address')
+    console.log(addressType, hashedPubKey)
+
+    generateAddressFromCompressed(addressType, hashedPubKey);
+
 }
 
 // Function to generate address from compressed public key
-function generateAddressFromCompressed(compressedKey, addressType) {
-    const requestData = { compressed_public_key: compressedKey, address_type: addressType };
+function generateAddressFromCompressed(addressType, hashedPubKey) {
+    const requestData = {address_type: addressType, pub_key_hash: hashedPubKey };
 
     fetch('/generate_bitcoin_address', {
         method: 'POST',
@@ -205,3 +193,40 @@ function generateAddressFromPoints(pubkeyX, pubkeyY, addressType) {
     .catch(error => console.error('Error:', error));
 }
 
+//TESTING
+// script.js
+
+//document.addEventListener('DOMContentLoaded', () => {
+//    const addCardButton = document.getElementById('addCardButton'); // Ensure you have this button in your HTML
+//    const cardContainer = document.querySelector('.container');
+//    let cardCount = 0;
+//
+//    addCardButton.addEventListener('click', () => {
+//        cardCount += 1;
+//        const newCard = document.createElement('div');
+//        newCard.classList.add('card', 'visible');
+//        newCard.innerHTML = `
+//            <h2>New Card ${cardCount}</h2>
+//            <p>This is the content of card number ${cardCount}.</p>
+//            <button class="button" onclick="removeCard(this)">Remove</button>
+//        `;
+//
+//        // Calculate offset based on current card count
+//        const offset = cardCount * 10; // Adjust the multiplier for desired overlap
+//        newCard.style.transform = `translateY(${offset}px) scale(${1 - cardCount * 0.02})`;
+//        newCard.style.zIndex = cardCount;
+//
+//        cardContainer.appendChild(newCard);
+//    });
+//});
+//
+//function removeCard(button) {
+//    const card = button.parentElement;
+//    card.classList.remove('visible');
+//    card.style.transition = 'all 0.3s ease';
+//    card.style.opacity = '0';
+//    card.style.transform = 'translateY(-20px) scale(0.98)';
+//    setTimeout(() => {
+//        card.remove();
+//    }, 300);
+//}

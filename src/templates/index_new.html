@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptographic API Homepage</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Cryptographic API Webpage</h1>
+    <!-- Tabs for Navigation -->
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('key-gen')">Key Generation</div>
+        <div class="tab" onclick="showTab('signing')">Message Signing</div>
+        <div class="tab" onclick="showTab('verifying')">Message Verifying</div>
+        <div class="tab" onclick="showTab('hashing')">Hash Data</div>
+        <div class="tab" onclick="showTab('address-gen')">Bitcoin Address</div>
+
+    </div>
+    <hr>
+
+    <!-- Key Generation Card -->
+    <div id="key-gen" class="card visible">
+        <h2>Key Generation</h2>
+
+        <!-- Generate Private Key -->
+        <div class="field-container">
+            <label for="private-key">Private Key:</label>
+            <input type="text" id="private-key" class="text-field" placeholder="Enter or generate a private key">
+        </div>
+        <button class="button" onclick="generatePrivateKey()">Generate Private Key</button>
+
+        <!-- Get Public Keys -->
+        <div class="field-container">
+            <label for="public-key-x">Public Key X:</label>
+            <input type="text" id="public-key-x" class="text-field" readonly>
+        </div>
+        <div class="field-container">
+            <label for="public-key-y">Public Key Y:</label>
+            <input type="text" id="public-key-y" class="text-field" readonly>
+        </div>
+        <div class="field-container">
+            <label for="compressed-public-key">Compressed Public Key:</label>
+            <input type="text" id="compressed-public-key" class="text-field" readonly>
+        </div>
+        <button class="button" onclick="getPublicKeys()">Get Public Keys</button>
+    </div>
+
+    <!-- Message Signing Card -->
+    <div id="signing" class="card hidden">
+        <h2>Message Signing</h2>
+        <div class="field-container">
+            <label for="sign-message">Message:</label>
+            <input type="text" id="sign-message" class="text-field" placeholder="Enter message to sign">
+        </div>
+        <div class="field-container">
+            <label for="sign-private-key">Private Key:</label>
+            <input type="text" id="sign-private-key" class="text-field" placeholder="Enter Private Key">
+        </div>
+        <button class="button" onclick="signMessage()">Sign Message</button>
+        <h2>Signature Values</h2>
+        <div class="field-container">
+            <label for="signature-r">Signature r:</label>
+            <input type="text" id="signature-r" class="text-field" readonly>
+        </div>
+        <div class="field-container">
+            <label for="signature-s">Signature s:</label>
+            <input type="text" id="signature-s" class="text-field" readonly>
+        </div>
+        <div class="field-container">
+            <label for="der-signature">DER Encoded Signature:</label>
+            <input type="text" id="der-signature" class="text-field" readonly>
+        </div>
+    </div>
+
+    <!-- Message Verification Card -->
+    <div id="verifying" class="card hidden">
+        <h2>Message Verification</h2>
+        <div class="field-container">
+            <label for="verify-message">Message:</label>
+            <input type="text" id="verify-message" class="text-field" placeholder="Enter message to verify">
+        </div>
+        <div class="field-container">
+            <label for="sign-cpk">Compressed Public Key:</label>
+            <input type="text" id="sign-cpk" class="text-field" placeholder="Enter Compressed Public Key">
+        </div>
+        <div class="field-container">
+            <label for="signature-r-verify">Signature r:</label>
+            <input type="text" id="signature-r-verify" class="text-field">
+        </div>
+        <div class="field-container">
+            <label for="signature-s-verify">Signature s:</label>
+            <input type="text" id="signature-s-verify" class="text-field">
+        </div>
+        <div class="field-container">
+            <label for="der-signature-verify">DER Encoded Signature:</label>
+            <input type="text" id="der-signature-verify" class="text-field">
+        </div>
+        <button class="button" onclick="verifySignature()">Verify Signature</button>
+        <div class="field-container">
+            <label for="verification-result">Verification:</label>
+            <input type="text" id="verification-result" class="text-field" readonly>
+        </div>
+
+    </div>
+
+    <!-- Hashing Card -->
+    <div id="hashing" class="card hidden">
+        <h2>Data Hashing</h2>
+        <div class="field-container">
+            <label for="hashing-input">Input:</label>
+            <input type="text" id="hashing-input" class="text-field" placeholder="Enter data to hash">
+        </div>
+        <button class="button" onclick="hash_input()">Hash Input</button>
+        <div class="field-container">
+            <label for="sha256-result">SHA-256 Hash:</label>
+            <input type="text" id="sha256-result" class="text-field" readonly>
+        </div>
+        <div class="field-container">
+            <label for="hash256-result">HASH256 Hash:</label>
+            <input type="text" id="hash256-result" class="text-field" readonly>
+        </div>
+        <div class="field-container">
+            <label for="ripemd160-result">RIPEMD160 Hash:</label>
+            <input type="text" id="ripemd160-result" class="text-field" readonly>
+        </div>
+        <div class="field-container">
+            <label for="hash160-result">HASH160 Hash:</label>
+            <input type="text" id="hash160-result" class="text-field" readonly>
+        </div>
+
+
+    </div>
+
+    <!-- Bitcoin Address Generation Card -->
+    <div id="address-gen" class="card hidden">
+        <h2>Bitcoin Address Generation</h2>
+
+        <!-- Input Field for Compressed Public Key -->
+        <div class="field-container">
+            <label for="pubkey-compressed">Compressed Public Key:</label>
+            <input type="text" id="pubkey-compressed" class="text-field"
+                   placeholder="Enter compressed public key in hex">
+        </div>
+        <button class="button" onclick="pubKeyHash()">Generate PubKeyHash</button>
+        <div class="field-container">
+            <label for="pubkey-hash"> Public Key HASH160: </label>
+            <input type="text" id="pubkey-hash" class="text-field" readonly>
+        </div>
+        <div class="field-container">
+            <label for="address-type">Address Type:</label>
+            <select id="address-type" class="text-field">
+                <option value="legacy">Legacy (P2PKH)</option>
+                <option value="bech32">Bech32 (P2WPKH)</option>
+            </select>
+        </div>
+        <button class="button" onclick="generateBitcoinAddress()">Generate Bitcoin Address</button>
+        <div class="field-container">
+            <label for="btc-address-result">Bitcoin Address:</label>
+            <input type="text" id="btc-address-result" class="text-field" readonly>
+        </div>
+
+    </div>
+    <button id="addCardButton" class="button">Add New Card</button>
+</div>
+<!-- Link to JavaScript -->
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

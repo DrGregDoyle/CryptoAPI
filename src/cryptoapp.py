@@ -1,7 +1,8 @@
 from flask import Flask, render_template, jsonify, request
 
-from src.library.codec import der_encode, decompress_public_key, compress_public_key
-from src.library.codec import encode_base58, der_decode
+from src.library.address import LockType, get_address_prefix
+from src.library.codec import der_decode, encode_base58check, encode_bech32
+from src.library.codec import der_encode, decompress_public_key
 from src.library.curves import CurveType, get_curve
 from src.library.data_formats import Data
 from src.library.ecc_keys import KeyPair
@@ -151,27 +152,23 @@ def hash_compressed_public_key():
 
 @app.route('/generate_bitcoin_address', methods=['POST'])
 def generate_bitcoin_address():
-    data = request.get_json()
-
-    # Determine if input is a compressed public key or x, y coordinates
-    compressed_pubkey = data.get('compressed_public_key')
-    pubkey_x = data.get('public_key_x')
-    pubkey_y = data.get('public_key_y')
+    data = request.get_json()  # Data comes from generateBitcoinAddress() = {address-type, pubkey-hash}
     address_type = data.get('address_type', 'legacy')
+    pubkey_hash = data.get('pub_key_hash')
 
-    if compressed_pubkey:
-        pass
-        # pubkey_bytes = bytes.fromhex(compressed_pubkey)
-    elif pubkey_x and pubkey_y:
-        # Compress the public key from x and y coordinates
-        compressed_pubkey = compress_public_key((int(pubkey_x), int(pubkey_y)))
+    print(data)
+
+    if not pubkey_hash:
+        return jsonify({'error': 'Public key hash required.'}), 400
+
+    if address_type == "legacy":
+        address_prefix = get_address_prefix(LockType.P2PKH)
+        pubkey_data = Data(address_prefix + pubkey_hash)
+        address = encode_base58check(pubkey_data)
     else:
-        return jsonify({'error': 'Invalid input'}), 400
+        address = encode_bech32(Data(pubkey_hash))
 
-    pubkey_data = Data(compressed_pubkey)
-    base58_string = encode_base58(pubkey_data)
-
-    return jsonify({'bitcoin_address': base58_string})
+    return jsonify({'bitcoin_address': address})
 
 
 if __name__ == '__main__':

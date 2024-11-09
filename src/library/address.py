@@ -11,6 +11,9 @@ class LockType:
 
 
 def get_address_prefix(address_type: LockType = LockType.P2PKH, mainnet: bool = True):
+    """
+    For use with Base58 addresses.
+    """
     match address_type:
         case LockType.P2PKH:
             return "00" if mainnet else "6f"
