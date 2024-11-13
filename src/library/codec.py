@@ -117,13 +117,13 @@ def encode_bech32(data: Data):
     if len(pubkey_hash) != 20:
         raise ValueError("P2WPKH pubkey hash must be exactly 20 bytes.")
 
-    # Prepend version byte (0x00 for SegWit v0)
-    data_with_version = bytes([0x00]) + pubkey_hash
-
     # Convert 8-bit data to 5-bit using the reference convertbits function
-    converted_data = convertbits(data_with_version, 8, 5, pad=False)
+    converted_data = convertbits(pubkey_hash, 8, 5, pad=False)
     if converted_data is None:
         raise ValueError("Failed to convert data from 8-bit to 5-bit.")
+
+    # Prepend version byte (0x00 for SegWit v0)
+    converted_data = [0] + converted_data
 
     # Submit converted_data using "bc" as hrp
     bech32_address = bech32_encode(hrp="bc", data=converted_data, spec=Encoding.BECH32)
@@ -205,7 +205,7 @@ def der_decode(encoded_signature: str):
 
 
 if __name__ == "__main__":
-    _data = Data("659fce0935e44098a293f496cb47a3cc8b62d86b")
-    _addresss = encode_bech32(_data)
+    _data = Data("5fe59c4a885ecd5358843a92a16854d9eb891ac4")
+    _address = encode_bech32(_data)
 
-    print(_addresss)
+    print(_address)
